@@ -5,6 +5,7 @@ import random
 
 from scenes.scene import Scene
 from scenes.draggable_window import DraggableWindow
+from scenes.gameover_scene import GameOverScene
 
 class GameScene(Scene):
     def __init__(self, game):
@@ -17,6 +18,9 @@ class GameScene(Scene):
         self.number_of_words = 0
         self.correct = False
 
+        # Hearts system
+        self.hearts = 3  # Start with 3 hearts
+
         self.text_game_score = self.game.font_heading_three.render(f"Score: {self.number_of_words}", True, 'white')
         # self.text_word_origin = self.game.font_heading_three.render(f"Origin: {self.origin}", True, 'white')
         self.text_word_meanings = self.game.font_heading_three.render(f"{self.meanings}", True, 'white')
@@ -24,6 +28,15 @@ class GameScene(Scene):
         # Create the draggable window instance
         self.hints_window = DraggableWindow(390, 140, 500, 420, self, 'Hints')
         self.tab_held = False
+
+    def reset(self):
+        self.word = ""
+        # self.origin = ""
+        self.meanings = ""
+        self.guess = ""
+        self.number_of_words = 0
+        self.correct = False
+        self.hearts = 3  # Reset hearts to 3
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -51,6 +64,15 @@ class GameScene(Scene):
     def check_guess(self):
         if self.word != self.guess:
             self.guess += "[x]"
+            # Remove a heart if guess is wrong
+            if self.correct != True and self.hearts > 0:
+                self.hearts -= 1
+            # Change to game over scene if no hearts remain
+            if self.hearts == 0:
+                print("Game Over! You've run out of hearts.")
+                self.game.gameover_scene.setWordAndMeanings(self.word, self.meanings)
+                self.game.set_scene("gameover") # Return to menu or handle game over
+
         if self.word == self.guess and self.correct == False:
             self.guess += " -> correct!"
             self.correct = True
@@ -90,6 +112,15 @@ class GameScene(Scene):
     def render(self, screen):
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
+
+        # Draw hearts (simple red circles for now)
+        heart_radius = 10
+        heart_spacing = 50
+        heart_y = 130
+        heart_x_start = self.game.screen_width // 2 - heart_spacing
+        for i in range(self.hearts):
+            x = heart_x_start + i * heart_spacing
+            pygame.draw.circle(screen, (220, 20, 60), (x, heart_y), heart_radius)
 
         if self.word == "":
             self.get_word_definitions()

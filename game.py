@@ -4,6 +4,7 @@ import json
 from scenes.game_scene import GameScene
 from scenes.menu_scene import MenuScene
 from scenes.options_scene import OptionsScene
+from scenes.gameover_scene import GameOverScene
 
 class Game:
     def __init__(self):
@@ -26,6 +27,7 @@ class Game:
         self.menu_scene = MenuScene(self)
         self.options_scene = OptionsScene(self)
         self.game_scene = GameScene(self)
+        self.gameover_scene = GameOverScene(self)
         self.set_scene("menu")
 
         # Dictionary
@@ -50,9 +52,12 @@ class Game:
         if scene_name == "menu":
             self.scene = self.menu_scene
         elif scene_name == "game":
+            self.game_scene.reset()
             self.scene = self.game_scene
         elif scene_name == "options":
             self.scene = self.options_scene
+        elif scene_name == "gameover":
+            self.scene = self.gameover_scene
 
     def handle_events(self):
         for event in pygame.event.get():
