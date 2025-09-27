@@ -19,7 +19,8 @@ class GameOverScene(Scene):
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE:
-                self.game.set_scene("menu")  # Return to menu on Enter key
+                self.game.menu_escape_sound.play()
+                self.game.set_scene("menu")
     
     def render(self, screen):
         # fill the screen with a color to wipe away anything from last frame

@@ -22,6 +22,15 @@ class Game:
         self.font_heading_three = pygame.font.Font('resources/fonts/Scheherazade-Regular.ttf', 45)
         self.font_regular_one = pygame.font.Font('resources/fonts/Scheherazade-Regular.ttf', 35)
 
+        # Sounds
+        self.correct_word_sound = pygame.mixer.Sound('resources/sounds/correct_word.mp3')
+        self.incorrect_word_sound = pygame.mixer.Sound('resources/sounds/incorrect_word.mp3')
+        self.gameover_sound = pygame.mixer.Sound('resources/sounds/game_over_sound.mp3')
+        self.menu_selection_sound = pygame.mixer.Sound('resources/sounds/menu_selection_sound.mp3')
+        self.menu_selection_sound_2 = pygame.mixer.Sound('resources/sounds/menu_selection_sound_2.mp3')
+        self.menu_escape_sound = pygame.mixer.Sound('resources/sounds/menu_escape_sound.mp3')
+        
+
         # Scenes
         self.scene = None
         self.menu_scene = MenuScene(self)

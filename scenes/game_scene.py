@@ -2,6 +2,8 @@ import pygame
 import json
 import requests
 import random
+from itertools import repeat
+from random import randint
 
 from scenes.scene import Scene
 from scenes.draggable_window import DraggableWindow
@@ -21,6 +23,9 @@ class GameScene(Scene):
         # Hearts system
         self.hearts = 3  # Start with 3 hearts
 
+        # Shake and correct word system
+        self.offset = repeat((0, 0))
+
         self.text_game_score = self.game.font_heading_three.render(f"Score: {self.number_of_words}", True, 'white')
         # self.text_word_origin = self.game.font_heading_three.render(f"Origin: {self.origin}", True, 'white')
         self.text_word_meanings = self.game.font_heading_three.render(f"{self.meanings}", True, 'white')
@@ -28,6 +33,17 @@ class GameScene(Scene):
         # Create the draggable window instance
         self.hints_window = DraggableWindow(390, 140, 500, 420, self, 'Hints')
         self.tab_held = False
+
+    def shake(self):
+        s = -1
+        for _ in range(0, 3):
+            for x in range(0, 20, 5):
+                yield (x*s, 0)
+            for x in range(20, 0, 5):
+                yield (x*s, 0)
+            s *= -1
+        while True:
+            yield (0, 0)
 
     def reset(self):
         self.word = ""
@@ -37,10 +53,12 @@ class GameScene(Scene):
         self.number_of_words = 0
         self.correct = False
         self.hearts = 3  # Reset hearts to 3
+        self.offset = repeat((0, 0))
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
+                self.game.menu_escape_sound.play()
                 self.game.set_scene("menu")
             elif event.key in [pygame.K_a, pygame.K_b, pygame.K_c, pygame.K_d, pygame.K_e, pygame.K_f, pygame.K_g,
                                pygame.K_h, pygame.K_i, pygame.K_j, pygame.K_k, pygame.K_l, pygame.K_m, pygame.K_n,
@@ -63,12 +81,16 @@ class GameScene(Scene):
 
     def check_guess(self):
         if self.word != self.guess:
-            self.guess += "[x]"
             # Remove a heart if guess is wrong
             if self.correct != True and self.hearts > 0:
+                # Play incorrect word sound
+                self.game.incorrect_word_sound.play()
                 self.hearts -= 1
+                self.offset = self.shake()
+                print(f"Wrong guess! Hearts remaining: {self.hearts}")
             # Change to game over scene if no hearts remain
             if self.hearts == 0:
+                self.game.gameover_sound.play()
                 print("Game Over! You've run out of hearts.")
                 self.game.gameover_scene.setWordAndMeanings(self.word, self.meanings)
                 self.game.set_scene("gameover") # Return to menu or handle game over
@@ -76,6 +98,8 @@ class GameScene(Scene):
         if self.word == self.guess and self.correct == False:
             self.guess += " -> correct!"
             self.correct = True
+            # Play correct word sound
+            self.game.correct_word_sound.play()
         elif self.correct == True:
             self.correct = False
             self.word = ""
@@ -122,10 +146,12 @@ class GameScene(Scene):
             x = heart_x_start + i * heart_spacing
             pygame.draw.circle(screen, (220, 20, 60), (x, heart_y), heart_radius)
 
+        # Update word definitions and hints
         if self.word == "":
             self.get_word_definitions()
             self.update_hint_words()
 
+            # Draw word meanings
             text = []
             for part_of_speech in self.meanings:
                 text.append(f"({part_of_speech['partOfSpeech']})")
@@ -141,11 +167,16 @@ class GameScene(Scene):
             self.text_game_score = self.game.font_heading_three.render(f"Score: {self.number_of_words}", True, 'white')
             # self.text_word_origin = self.game.font_heading_three.render(f"Origin: {self.origin}", True, 'white')
 
+        # Update current guess
         self.text_player_guess = self.game.font_heading_three.render(f"_{self.guess}_", True, 'white')
 
+        # Display game score
         screen.blit(self.text_game_score, (self.game.screen_width / 2 - 140, self.game.screen_height / 5 - 100))
         # screen.blit(self.text_word_origin, (self.game.screen_width / 2 - 530, self.game.screen_height / 5 - 35))
-        screen.blit(self.text_player_guess, (self.game.screen_width / 2, 4 * self.game.screen_height / 5))
+        
+        # Display current guess with shake effect
+        offset = self.offset.__next__()
+        screen.blit(self.text_player_guess, (self.game.screen_width / 2 + offset[0], 4 * self.game.screen_height / 5 + offset[1]))
 
         for i in range(len(self.text_word_meanings)):
             screen.blit(self.text_word_meanings[i], (self.game.screen_width / 2 - 530, self.game.screen_height / 5 + i * 35))

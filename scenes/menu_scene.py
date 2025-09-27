@@ -15,14 +15,17 @@ class MenuScene(Scene):
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
+                self.game.menu_selection_sound.play()
                 self.menu_cursor_pos += 1
                 if self.menu_cursor_pos > 2:
                     self.menu_cursor_pos = 0
             elif event.key == pygame.K_UP:
+                self.game.menu_selection_sound.play()
                 self.menu_cursor_pos -= 1
                 if self.menu_cursor_pos < 0:
                     self.menu_cursor_pos = 2
             elif event.key in [pygame.K_a, pygame.K_RETURN]:
+                self.game.menu_selection_sound_2.play()
                 if self.menu_cursor_pos == 0:
                     print("Setting scene to GameScene")
                     self.game.set_scene("game")
@@ -31,6 +34,8 @@ class MenuScene(Scene):
                     self.game.set_scene("options")
                 elif self.menu_cursor_pos == 2:
                     self.game.running = False  # Quit
+            elif event.key == pygame.K_ESCAPE:
+                self.game.running = False  # Quit
 
     def render(self, screen):
         # fill the screen with a color to wipe away anything from last frame
